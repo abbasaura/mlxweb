@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/mlxweb/static/css/main.4aca9a38.css",
-    "main.js": "/mlxweb/static/js/main.00a7cc37.js",
+    "main.js": "/mlxweb/static/js/main.8f2eca66.js",
     "static/js/453.6dd7a678.chunk.js": "/mlxweb/static/js/453.6dd7a678.chunk.js",
     "index.html": "/mlxweb/index.html",
     "main.4aca9a38.css.map": "/mlxweb/static/css/main.4aca9a38.css.map",
-    "main.00a7cc37.js.map": "/mlxweb/static/js/main.00a7cc37.js.map",
+    "main.8f2eca66.js.map": "/mlxweb/static/js/main.8f2eca66.js.map",
     "453.6dd7a678.chunk.js.map": "/mlxweb/static/js/453.6dd7a678.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.4aca9a38.css",
-    "static/js/main.00a7cc37.js"
+    "static/js/main.8f2eca66.js"
   ]
 }
