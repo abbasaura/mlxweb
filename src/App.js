@@ -8,12 +8,14 @@ import "./App.css";
 
 function App() {
   return (
-    <div className="app">
-      <Header />
-      <Hero />
-      <Services />
-      <Contact />
-      <Footer />
+    <div style={{ backgroundColor: '#e0f7fa', minHeight: '100vh' }}>
+      <div className="app">
+        <Header />
+        <Hero />
+        <Services />
+        <Contact />
+        <Footer />
+      </div>
     </div>
   );
 }
