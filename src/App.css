@@ -1,38 +1,135 @@
-.App {
+/* General */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+/* Header */
+header {
+  background-color: #003366;
+  color: white;
+  padding: 20px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+}
+
+header nav a {
+  color: white;
+  margin-left: 20px;
+  text-decoration: none;
+}
+
+header nav a:hover {
+  color: #cccccc;
+}
+
+/* Hero */
+.hero {
+  background-color: #f2f2f2;
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.hero h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.hero a {
+  background-color: #003366;
+  color: white;
+  padding: 12px 30px;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.hero a:hover {
+  background-color: #0055aa;
+}
+
+/* Services */
+.services {
+  padding: 80px 20px;
+  text-align: center;
+  background-color: #fff;
+}
+
+.services h3 {
+  font-size: 28px;
+  margin-bottom: 40px;
+}
+
+.service-card {
+  background-color: #f2f2f2;
+  display: inline-block;
+  width: 280px;
+  padding: 20px;
+  margin: 10px;
+  border-radius: 8px;
+}
+
+.service-card h4 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+/* Contact */
+.contact {
+  background-color: #f9f9f9;
+  padding: 80px 20px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.contact h3 {
+  font-size: 28px;
+  margin-bottom: 30px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.contact form {
+  display: inline-block;
+  max-width: 400px;
+  width: 100%;
+  text-align: left;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+.contact input, .contact textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.contact button {
+  background-color: #003366;
   color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-.App-link {
-  color: #61dafb;
+.contact button:hover {
+  background-color: #0055aa;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Footer */
+footer {
+  background-color: #003366;
+  color: white;
+  text-align: center;
+  padding: 20px 50px;
 }
