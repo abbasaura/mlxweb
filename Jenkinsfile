@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        PATH = "/var/lib/jenkins/nodejs/bin:${env.PATH}"
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
@@ -14,6 +18,8 @@ pipeline {
         stage('Build') {
             steps {
                 echo "🛠️ Building project..."
+                sh 'node -v'
+                sh 'npm -v'
                 sh 'npm install'
             }
         }
