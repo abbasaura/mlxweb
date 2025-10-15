@@ -6,7 +6,7 @@ pipeline {
             steps {
                 echo "📥 Checking out code from GitHub..."
                 git branch: 'main',
-                    credentialsId: 'github-creds',
+                    credentialsId: 'github',
                     url: 'https://github.com/abbasaura/mlxweb.git'
             }
         }
