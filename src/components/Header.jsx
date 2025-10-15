@@ -5,7 +5,7 @@ const Header = () => {
     <header>
       <h1>Multilynx</h1>
       <nav>
-        <a href="#services">Services</a>
+        <a href="#services">Service</a>
         <a href="#contact">Contact</a>
       </nav>
     </header>
