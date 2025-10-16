@@ -11,7 +11,6 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo "📥 Checking out code from GitHub..."
-                // Explicitly checkout 'main' branch
                 git branch: 'main',
                     url: 'https://github.com/abbasaura/mlxweb.git',
                     credentialsId: 'github'
@@ -21,9 +20,8 @@ pipeline {
         stage('Build') {
             steps {
                 echo "🛠️ Building project..."
-                // Use workspace-local npm cache to avoid permission issues
                 sh '''
-                    npm install --cache $WORKSPACE/.npm --prefer-offline --no-audit
+                    npm install --prefer-offline --no-audit
                 '''
             }
         }
@@ -31,7 +29,6 @@ pipeline {
         stage('Test') {
             steps {
                 echo "🧪 Running tests..."
-                // Skip outdated tests safely
                 sh '''
                     npm test -- --watchAll=false --passWithNoTests || true
                 '''
@@ -39,8 +36,10 @@ pipeline {
         }
 
         stage('Deploy to OpenShift') {
-            // Run on a node with 'oc' CLI installed
-            agent { label 'oc-agent' }
+            // Run deployment in a Docker container with oc CLI
+            agent {
+                docker { image 'openshift/oc:latest' } 
+            }
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
