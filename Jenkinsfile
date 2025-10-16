@@ -1,13 +1,13 @@
 pipeline {
-    agent any   // Use the default agent for all stages
+    agent any   // Default agent for build/test stages
 
     triggers {
         // Poll GitHub every minute OR rely on GitHub webhook
-        pollSCM('* * * * *') 
+        pollSCM('* * * * *')
     }
 
     environment {
-        // Jenkins secret text credential ID
+        // Jenkins secret text credential ID for OpenShift
         KUBEADMIN_PASSWORD = credentials('kubeadmin-password')
     }
 
@@ -35,12 +35,14 @@ pipeline {
             steps {
                 echo "🧪 Running tests..."
                 sh '''
+                    # Run tests but do not fail if none exist
                     npm test -- --watchAll=false --passWithNoTests || true
                 '''
             }
         }
 
         stage('Deploy to OpenShift') {
+            agent { label 'master' } // Must be the node where `oc` is installed
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
