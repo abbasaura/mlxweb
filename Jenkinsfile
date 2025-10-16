@@ -18,9 +18,23 @@ pipeline {
         stage('Build') {
             steps {
                 echo "🛠️ Building project..."
-                sh 'node -v'
-                sh 'npm -v'
-                sh 'npm install'
+                sh '''
+                    # Display Node.js and npm versions
+                    node -v
+                    npm -v
+
+                    # Use a writable npm cache directory inside workspace
+                    export NPM_CONFIG_CACHE=$PWD/.npm
+
+                    # Clean up any leftover or corrupted dependencies
+                    rm -rf node_modules package-lock.json .npm
+
+                    # Clean npm cache (in case of previous failed installs)
+                    npm cache clean --force
+
+                    # Install dependencies safely
+                    npm install --prefer-offline --no-audit
+                '''
             }
         }
 
