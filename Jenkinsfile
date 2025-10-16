@@ -1,8 +1,8 @@
 pipeline {
-    agent any   // Default agent for build/test
+    agent any   // Use the default agent for all stages
 
     environment {
-        // Use Jenkins credentials (create secret text credential with ID: kubeadmin-password)
+        // Use Jenkins secret text credential with ID 'kubeadmin-password'
         KUBEADMIN_PASSWORD = credentials('kubeadmin-password')
     }
 
@@ -13,7 +13,7 @@ pipeline {
                 echo "📥 Checking out code from GitHub..."
                 git branch: 'main',
                     url: 'https://github.com/abbasaura/mlxweb.git',
-                    credentialsId: 'github'
+                    credentialsId: 'github' // Your GitHub credential ID
             }
         }
 
@@ -36,10 +36,6 @@ pipeline {
         }
 
         stage('Deploy to OpenShift') {
-            // Run deployment in a Docker container with oc CLI
-            agent {
-                docker { image 'openshift/oc:latest' } 
-            }
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
@@ -48,7 +44,6 @@ pipeline {
                 '''
             }
         }
-
     }
 
     post {
