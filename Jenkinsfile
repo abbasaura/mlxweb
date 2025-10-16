@@ -21,8 +21,9 @@ pipeline {
         stage('Build') {
             steps {
                 echo "🛠️ Building project..."
+                // Use workspace-local npm cache to avoid permission issues
                 sh '''
-                    npm install --prefer-offline --no-audit
+                    npm install --cache $WORKSPACE/.npm --prefer-offline --no-audit
                 '''
             }
         }
