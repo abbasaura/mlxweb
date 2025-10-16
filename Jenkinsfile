@@ -2,13 +2,13 @@ pipeline {
     agent any   // Default agent for build/test stages
 
     triggers {
-        // Poll GitHub every minute OR rely on GitHub webhook
-        pollSCM('* * * * *')
+        // Poll GitHub every minute (alternative: configure webhook in GitHub)
+        pollSCM('* * * * *') 
     }
 
     environment {
-        // Jenkins secret text credential ID for OpenShift
-        KUBEADMIN_PASSWORD = credentials('kubeadmin-password')
+        // Jenkins secret text credentials
+        KUBEADMIN_PASSWORD = credentials('kubeadmin-password') // OpenShift kubeadmin password
     }
 
     stages {
@@ -18,7 +18,7 @@ pipeline {
                 echo "📥 Checking out code from GitHub..."
                 git branch: 'main',
                     url: 'https://github.com/abbasaura/mlxweb.git',
-                    credentialsId: 'github' // Make sure this exists in Jenkins
+                    credentialsId: 'github' // Make sure this GitHub credential exists
             }
         }
 
@@ -35,23 +35,25 @@ pipeline {
             steps {
                 echo "🧪 Running tests..."
                 sh '''
-                    # Run tests but do not fail if none exist
+                    # Run tests, allow no test suite without failing the pipeline
                     npm test -- --watchAll=false --passWithNoTests || true
                 '''
             }
         }
 
         stage('Deploy to OpenShift') {
-            agent { label 'master' } // Must be the node where `oc` is installed
+            agent { label 'oc-agent' } // Make sure this node has oc CLI installed
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
+                    # Log in to OpenShift cluster
                     oc login -u kubeadmin -p $KUBEADMIN_PASSWORD https://api.crc.testing:6443 --insecure-skip-tls-verify
+
+                    # Apply deployment manifest
                     oc apply -f k8s/deployment.yaml
                 '''
             }
         }
-
     }
 
     post {
