@@ -9,6 +9,9 @@ pipeline {
     environment {
         // Jenkins secret text credentials
         KUBEADMIN_PASSWORD = credentials('kubeadmin-password') // OpenShift kubeadmin password
+
+        // Fix npm cache permission issue
+        NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
     }
 
     stages {
