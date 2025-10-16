@@ -1,8 +1,13 @@
 pipeline {
-    agent any   // Use the default agent for all stages
+    agent any   // Default agent for build/test
+
+    triggers {
+        // Poll GitHub every minute OR rely on GitHub webhook
+        pollSCM('* * * * *') 
+    }
 
     environment {
-        // Use Jenkins secret text credential with ID 'kubeadmin-password'
+        // Jenkins secret text credential ID
         KUBEADMIN_PASSWORD = credentials('kubeadmin-password')
     }
 
@@ -13,7 +18,7 @@ pipeline {
                 echo "📥 Checking out code from GitHub..."
                 git branch: 'main',
                     url: 'https://github.com/abbasaura/mlxweb.git',
-                    credentialsId: 'github' // Your GitHub credential ID
+                    credentialsId: 'github' // Ensure this credential exists in Jenkins
             }
         }
 
@@ -36,6 +41,7 @@ pipeline {
         }
 
         stage('Deploy to OpenShift') {
+            agent { label 'oc-agent' } // Node must have 'oc' CLI installed
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
@@ -44,6 +50,7 @@ pipeline {
                 '''
             }
         }
+
     }
 
     post {
