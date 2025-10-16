@@ -1,5 +1,5 @@
 pipeline {
-    agent any   // Default agent for build/test
+    agent any   // Use the default agent for all stages
 
     triggers {
         // Poll GitHub every minute OR rely on GitHub webhook
@@ -18,7 +18,7 @@ pipeline {
                 echo "📥 Checking out code from GitHub..."
                 git branch: 'main',
                     url: 'https://github.com/abbasaura/mlxweb.git',
-                    credentialsId: 'github' // Ensure this credential exists in Jenkins
+                    credentialsId: 'github' // Make sure this exists in Jenkins
             }
         }
 
@@ -41,7 +41,6 @@ pipeline {
         }
 
         stage('Deploy to OpenShift') {
-            agent { label 'oc-agent' } // Node must have 'oc' CLI installed
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
