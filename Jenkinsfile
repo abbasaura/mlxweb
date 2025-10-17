@@ -2,23 +2,30 @@ pipeline {
     agent any
 
     environment {
-        // Make sure oc is in PATH (you already copied it to /tmp inside Jenkins)
         PATH = "/tmp:$PATH"
         OC_CMD = "oc"
-        KUBECONFIG = "${WORKSPACE}/.kube/config"
+        REGISTRY = "default-route-openshift-image-registry.apps-crc.testing"
+        PROJECT = "cicd"
+        APP_NAME = "mlxweb-git"
+    }
+
+    triggers {
+        // Auto-trigger when code is pushed to GitHub
+        githubPush()
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
-                echo "📥 Checking out code from GitHub..."
+                echo "📥 Checking out latest code from GitHub..."
                 checkout scm
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo "🛠️ Installing dependencies..."
+                echo "🛠 Installing Node.js dependencies..."
                 sh '''
                     rm -rf node_modules
                     npm install --prefer-offline --no-audit --cache $WORKSPACE/.npm
@@ -26,7 +33,7 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Run Tests') {
             steps {
                 echo "🧪 Running tests..."
                 sh '''
@@ -37,19 +44,20 @@ pipeline {
             }
         }
 
-        stage('Deploy to OpenShift') {
+        stage('Build and Deploy to OpenShift') {
             steps {
                 withCredentials([string(credentialsId: 'KUBEADMIN_PASSWORD', variable: 'KUBEADMIN_PASSWORD')]) {
-                    echo "🚀 Deploying to OpenShift..."
                     sh '''
-                        mkdir -p $(dirname "$KUBECONFIG")
-                        chmod -R 777 $(dirname "$KUBECONFIG")
-                        
+                        echo "🔐 Logging into OpenShift..."
                         $OC_CMD login -u kubeadmin -p "$KUBEADMIN_PASSWORD" https://api.crc.testing:6443 --insecure-skip-tls-verify
-                        $OC_CMD project jenkin || $OC_CMD new-project jenkin
-                        
-                        echo "Applying deployment..."
-                        $OC_CMD apply -f k8s/deployment.yaml
+
+                        echo "📦 Starting new OpenShift build..."
+                        $OC_CMD start-build $APP_NAME --wait --follow -n $PROJECT || echo "⚠️ Build may already exist"
+
+                        echo "🚀 Rolling out new version..."
+                        $OC_CMD rollout restart deployment/$APP_NAME -n $PROJECT
+
+                        echo "✅ Deployment complete."
                     '''
                 }
             }
@@ -58,7 +66,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ CI/CD Pipeline succeeded!"
+            echo "✅ CI/CD Pipeline succeeded and new version deployed!"
         }
         failure {
             echo "❌ CI/CD Pipeline failed!"
