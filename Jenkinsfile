@@ -28,7 +28,7 @@ pipeline {
                     branches: [[name: 'main']],
                     userRemoteConfigs: [[
                         url: 'https://github.com/abbasaura/mlxweb.git',
-                        credentialsId: 'github' // Ensure this exists in Jenkins
+                        credentialsId: 'github' // Make sure this exists in Jenkins
                     ]]
                 ])
             }
@@ -38,17 +38,11 @@ pipeline {
             steps {
                 echo "🛠️ Installing dependencies..."
                 sh '''
-                    # Remove old node_modules
+                    # Remove old node_modules to avoid stale packages
                     rm -rf node_modules
 
-                    # Use npm ci if package-lock.json exists, else npm install
-                    if [ -f package-lock.json ]; then
-                        echo "Using npm ci (lock file exists)"
-                        npm ci
-                    else
-                        echo "No lock file found, using npm install"
-                        npm install --prefer-offline --no-audit
-                    fi
+                    # Always use npm install to avoid npm ci errors
+                    npm install --prefer-offline --no-audit
                 '''
             }
         }
@@ -57,7 +51,7 @@ pipeline {
             steps {
                 echo "🧪 Running tests..."
                 sh '''
-                    # Run tests; allow no test suite without failing pipeline
+                    # Run tests; allow empty test suites without failing pipeline
                     npm test -- --watchAll=false --passWithNoTests || true
                 '''
             }
