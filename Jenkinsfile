@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-        // Path to the oc binary inside the Jenkins container
+        // Make sure oc is in PATH (you already copied it to /tmp inside Jenkins)
         PATH = "/tmp:$PATH"
         OC_CMD = "oc"
+        KUBECONFIG = "${WORKSPACE}/.kube/config"
     }
 
     stages {
@@ -41,7 +42,13 @@ pipeline {
                 withCredentials([string(credentialsId: 'KUBEADMIN_PASSWORD', variable: 'KUBEADMIN_PASSWORD')]) {
                     echo "🚀 Deploying to OpenShift..."
                     sh '''
+                        mkdir -p $(dirname "$KUBECONFIG")
+                        chmod -R 777 $(dirname "$KUBECONFIG")
+                        
                         $OC_CMD login -u kubeadmin -p "$KUBEADMIN_PASSWORD" https://api.crc.testing:6443 --insecure-skip-tls-verify
+                        $OC_CMD project jenkin || $OC_CMD new-project jenkin
+                        
+                        echo "Applying deployment..."
                         $OC_CMD apply -f k8s/deployment.yaml
                     '''
                 }
