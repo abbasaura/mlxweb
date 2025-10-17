@@ -43,7 +43,7 @@ spec:
         deployment: mlxweb-git
     spec:
       containers:
-      - image: image-registry.openshift-image-registry.svc:5000/cicd/mlxweb-git@sha256:05f8b1f1713dad4807427b451d8720ccd5e417ce6120a539c0293f856246166e
+      - image: image-registry.openshift-image-registry.svc:5000/cicd/mlxweb-git:latest
         imagePullPolicy: Always
         name: mlxweb-git
         ports:
