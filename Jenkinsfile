@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        KUBEADMIN_PASSWORD = credentials('kubeadmin-password')  // OpenShift password
-        NPM_CONFIG_CACHE   = "${WORKSPACE}/.npm"                // Writable npm cache
-        OC_PATH            = "/home/openshift/.crc/bin/oc/oc"  // Absolute path to oc
+        KUBEADMIN_PASSWORD = credentials('kubeadmin-password')       // OpenShift password
+        NPM_CONFIG_CACHE   = "${WORKSPACE}/.npm"                     // Writable npm cache
+        OC_PATH            = "/home/openshift/.crc/cache/crc_libvirt_4.19.8_amd64/oc" // Absolute resolved path
     }
 
     stages {
@@ -41,7 +41,7 @@ pipeline {
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
-                    # Use absolute path to oc binary
+                    # Use resolved absolute path to oc binary
                     $OC_PATH login -u kubeadmin -p $KUBEADMIN_PASSWORD https://api.crc.testing:6443 --insecure-skip-tls-verify
                     $OC_PATH apply -f k8s/deployment.yaml
                 '''
