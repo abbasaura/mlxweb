@@ -38,11 +38,13 @@ pipeline {
 
         stage('Deploy to OpenShift') {
             steps {
-                echo "🚀 Deploying to OpenShift..."
-                sh '''
-                    $OC_CMD login -u kubeadmin -p "$KUBEADMIN_PASSWORD" https://api.crc.testing:6443 --insecure-skip-tls-verify
-                    $OC_CMD apply -f k8s/deployment.yaml
-                '''
+                withCredentials([string(credentialsId: 'KUBEADMIN_PASSWORD', variable: 'KUBEADMIN_PASSWORD')]) {
+                    echo "🚀 Deploying to OpenShift..."
+                    sh '''
+                        $OC_CMD login -u kubeadmin -p "$KUBEADMIN_PASSWORD" https://api.crc.testing:6443 --insecure-skip-tls-verify
+                        $OC_CMD apply -f k8s/deployment.yaml
+                    '''
+                }
             }
         }
     }
