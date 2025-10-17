@@ -2,18 +2,16 @@ pipeline {
     agent any
 
     environment {
-        KUBEADMIN_PASSWORD = credentials('kubeadmin-password')
-        NPM_CONFIG_CACHE   = "${WORKSPACE}/.npm"  // writable npm cache for Jenkins
-        OC_PATH            = "/home/openshift/.crc/cache/crc_libvirt_4.19.8_amd64/oc" // absolute oc binary
+        // Path to the oc binary inside the Jenkins container
+        PATH = "/tmp:$PATH"
+        OC_CMD = "oc"
     }
 
     stages {
-
         stage('Checkout Code') {
             steps {
                 echo "📥 Checking out code from GitHub..."
-                git branch: 'main',
-                    url: 'https://github.com/abbasaura/mlxweb.git'
+                checkout scm
             }
         }
 
@@ -22,8 +20,7 @@ pipeline {
                 echo "🛠️ Installing dependencies..."
                 sh '''
                     rm -rf node_modules
-                    mkdir -p $NPM_CONFIG_CACHE
-                    npm install --prefer-offline --no-audit --cache $NPM_CONFIG_CACHE
+                    npm install --prefer-offline --no-audit --cache $WORKSPACE/.npm
                 '''
             }
         }
@@ -32,7 +29,9 @@ pipeline {
             steps {
                 echo "🧪 Running tests..."
                 sh '''
-                    npm test -- --watchAll=false --passWithNoTests || true
+                    set +e
+                    npm test -- --watchAll=false --passWithNoTests
+                    set -e
                 '''
             }
         }
@@ -41,17 +40,19 @@ pipeline {
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
-                    # ensure oc binary is executable
-                    chmod +x $OC_PATH
-                    $OC_PATH login -u kubeadmin -p $KUBEADMIN_PASSWORD https://api.crc.testing:6443 --insecure-skip-tls-verify
-                    $OC_PATH apply -f k8s/deployment.yaml
+                    $OC_CMD login -u kubeadmin -p $KUBEADMIN_PASSWORD https://api.crc.testing:6443 --insecure-skip-tls-verify
+                    $OC_CMD apply -f k8s/deployment.yaml
                 '''
             }
         }
     }
 
     post {
-        success { echo "✅ CI/CD Pipeline completed successfully!" }
-        failure { echo "❌ CI/CD Pipeline failed!" }
+        success {
+            echo "✅ CI/CD Pipeline succeeded!"
+        }
+        failure {
+            echo "❌ CI/CD Pipeline failed!"
+        }
     }
 }
