@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        KUBEADMIN_PASSWORD = credentials('kubeadmin-password')       // OpenShift password
-        NPM_CONFIG_CACHE   = "${WORKSPACE}/.npm"                     // Writable npm cache
-        OC_PATH            = "/home/openshift/.crc/cache/crc_libvirt_4.19.8_amd64/oc" // Absolute resolved path
+        KUBEADMIN_PASSWORD = credentials('kubeadmin-password')
+        NPM_CONFIG_CACHE   = "${WORKSPACE}/.npm"  // writable npm cache for Jenkins
+        OC_PATH            = "/home/openshift/.crc/cache/crc_libvirt_4.19.8_amd64/oc" // absolute oc binary
     }
 
     stages {
@@ -22,6 +22,7 @@ pipeline {
                 echo "🛠️ Installing dependencies..."
                 sh '''
                     rm -rf node_modules
+                    mkdir -p $NPM_CONFIG_CACHE
                     npm install --prefer-offline --no-audit --cache $NPM_CONFIG_CACHE
                 '''
             }
@@ -31,7 +32,6 @@ pipeline {
             steps {
                 echo "🧪 Running tests..."
                 sh '''
-                    # Continue even if tests fail
                     npm test -- --watchAll=false --passWithNoTests || true
                 '''
             }
@@ -41,7 +41,8 @@ pipeline {
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
-                    # Use resolved absolute path to oc binary
+                    # ensure oc binary is executable
+                    chmod +x $OC_PATH
                     $OC_PATH login -u kubeadmin -p $KUBEADMIN_PASSWORD https://api.crc.testing:6443 --insecure-skip-tls-verify
                     $OC_PATH apply -f k8s/deployment.yaml
                 '''
@@ -50,11 +51,7 @@ pipeline {
     }
 
     post {
-        success {
-            echo "✅ CI/CD Pipeline completed successfully!"
-        }
-        failure {
-            echo "❌ CI/CD Pipeline failed!"
-        }
+        success { echo "✅ CI/CD Pipeline completed successfully!" }
+        failure { echo "❌ CI/CD Pipeline failed!" }
     }
 }
