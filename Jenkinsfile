@@ -1,17 +1,23 @@
 pipeline {
-    agent any   // Default agent for build/test stages
+    agent any   // Single agent for all stages
 
     triggers {
-        // Poll GitHub every minute (alternative: configure webhook in GitHub)
-        pollSCM('* * * * *') 
+        // Poll GitHub every minute (or configure webhook)
+        pollSCM('* * * * *')
     }
 
     environment {
-        // Jenkins secret text credentials
-        KUBEADMIN_PASSWORD = credentials('kubeadmin-password') // OpenShift kubeadmin password
+        // OpenShift kubeadmin password stored as Jenkins secret text
+        KUBEADMIN_PASSWORD = credentials('kubeadmin-password')
 
-        // Fix npm cache permission issue
+        // NPM cache inside workspace to avoid permission issues
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
+    }
+
+    options {
+        // Clean workspace before each build to avoid stale modules
+        skipDefaultCheckout(true)
+        ansiColor('xterm')
     }
 
     stages {
@@ -19,17 +25,24 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo "📥 Checking out code from GitHub..."
-                git branch: 'main',
-                    url: 'https://github.com/abbasaura/mlxweb.git',
-                    credentialsId: 'github' // Make sure this GitHub credential exists
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/abbasaura/mlxweb.git',
+                        credentialsId: 'github'
+                    ]]
+                ])
             }
         }
 
-        stage('Build') {
+        stage('Install Dependencies') {
             steps {
-                echo "🛠️ Building project..."
+                echo "🛠️ Installing dependencies..."
                 sh '''
-                    npm install --prefer-offline --no-audit
+                    # Clean previous installs
+                    rm -rf node_modules package-lock.json
+                    npm ci
                 '''
             }
         }
@@ -38,18 +51,17 @@ pipeline {
             steps {
                 echo "🧪 Running tests..."
                 sh '''
-                    # Run tests, allow no test suite without failing the pipeline
+                    # Run tests; allow no test suite without failing pipeline
                     npm test -- --watchAll=false --passWithNoTests || true
                 '''
             }
         }
 
         stage('Deploy to OpenShift') {
-            agent { label 'oc-agent' } // Make sure this node has oc CLI installed
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
-                    # Log in to OpenShift cluster
+                    # Log in to OpenShift
                     oc login -u kubeadmin -p $KUBEADMIN_PASSWORD https://api.crc.testing:6443 --insecure-skip-tls-verify
 
                     # Apply deployment manifest
