@@ -1,14 +1,10 @@
 pipeline {
     agent any
 
-    triggers {
-        // Poll GitHub every 2 minutes (adjust as needed)
-        pollSCM('H/2 * * * *')
-    }
-
     environment {
-        KUBEADMIN_PASSWORD = credentials('kubeadmin-password') // OpenShift kubeadmin password
-        NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"                 // Writable npm cache
+        KUBEADMIN_PASSWORD = credentials('kubeadmin-password')  // OpenShift password
+        NPM_CONFIG_CACHE   = "${WORKSPACE}/.npm"                // Writable npm cache
+        OC_PATH            = "/home/openshift/.crc/bin/oc/oc"  // Absolute path to oc
     }
 
     stages {
@@ -18,7 +14,6 @@ pipeline {
                 echo "📥 Checking out code from GitHub..."
                 git branch: 'main',
                     url: 'https://github.com/abbasaura/mlxweb.git'
-                    // Remove credentialsId if repo is public
             }
         }
 
@@ -36,7 +31,7 @@ pipeline {
             steps {
                 echo "🧪 Running tests..."
                 sh '''
-                    # Do not fail pipeline if test suite is empty or fails
+                    # Continue even if tests fail
                     npm test -- --watchAll=false --passWithNoTests || true
                 '''
             }
@@ -46,9 +41,9 @@ pipeline {
             steps {
                 echo "🚀 Deploying to OpenShift..."
                 sh '''
-                    # Use full path to oc binary
-                    ~/.crc/bin/oc/oc login -u kubeadmin -p $KUBEADMIN_PASSWORD https://api.crc.testing:6443 --insecure-skip-tls-verify
-                    ~/.crc/bin/oc/oc apply -f k8s/deployment.yaml
+                    # Use absolute path to oc binary
+                    $OC_PATH login -u kubeadmin -p $KUBEADMIN_PASSWORD https://api.crc.testing:6443 --insecure-skip-tls-verify
+                    $OC_PATH apply -f k8s/deployment.yaml
                 '''
             }
         }
