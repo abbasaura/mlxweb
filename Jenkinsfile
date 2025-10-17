@@ -8,6 +8,7 @@ pipeline {
 
     environment {
         KUBEADMIN_PASSWORD = credentials('kubeadmin-password') // OpenShift kubeadmin password
+        NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"                 // Writable npm cache
     }
 
     stages {
@@ -17,7 +18,7 @@ pipeline {
                 echo "📥 Checking out code from GitHub..."
                 git branch: 'main',
                     url: 'https://github.com/abbasaura/mlxweb.git'
-                    // remove credentialsId if not needed for public repo
+                    // Remove credentialsId if repo is public
             }
         }
 
@@ -26,7 +27,7 @@ pipeline {
                 echo "🛠️ Installing dependencies..."
                 sh '''
                     rm -rf node_modules
-                    npm install --prefer-offline --no-audit
+                    npm install --prefer-offline --no-audit --cache $NPM_CONFIG_CACHE
                 '''
             }
         }
@@ -35,7 +36,7 @@ pipeline {
             steps {
                 echo "🧪 Running tests..."
                 sh '''
-                    # Ensure tests don't fail the pipeline if empty
+                    # Do not fail pipeline if test suite is empty or fails
                     npm test -- --watchAll=false --passWithNoTests || true
                 '''
             }
