@@ -7,10 +7,11 @@ pipeline {
         REGISTRY = "default-route-openshift-image-registry.apps-crc.testing"
         PROJECT = "cicd"
         APP_NAME = "mlxweb-git"
+        KUBECONFIG = "${WORKSPACE}/.kube/config"   // ✅ Store kubeconfig in writable Jenkins workspace
     }
 
     triggers {
-        // Auto-trigger when code is pushed to GitHub
+        // ✅ Auto-trigger when code is pushed to GitHub
         githubPush()
     }
 
@@ -49,8 +50,11 @@ pipeline {
                 withCredentials([string(credentialsId: 'KUBEADMIN_PASSWORD', variable: 'KUBEADMIN_PASSWORD')]) {
                     sh '''
                         echo "🔐 Logging into OpenShift..."
+                        mkdir -p $WORKSPACE/.kube  # ✅ ensure writable kube directory
+                        
                         $OC_CMD login -u kubeadmin -p "$KUBEADMIN_PASSWORD" https://api.crc.testing:6443 --insecure-skip-tls-verify
-
+                        $OC_CMD project $PROJECT
+                        
                         echo "📦 Starting new OpenShift build..."
                         $OC_CMD start-build $APP_NAME --wait --follow -n $PROJECT || echo "⚠️ Build may already exist"
 
@@ -73,3 +77,4 @@ pipeline {
         }
     }
 }
+
